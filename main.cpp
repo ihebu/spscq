@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <new>
 
 class rbuffer
 {
@@ -45,8 +46,8 @@ public:
 private:
     size_t capacity_;
     std::vector<uint32_t> data_;
-    std::atomic<size_t> readIdx_;
-    std::atomic<size_t> writeIdx_;
+    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> readIdx_;
+    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> writeIdx_;
 };
 
 // Benchmark function
