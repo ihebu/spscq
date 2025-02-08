@@ -5,14 +5,14 @@
 #include <thread>
 
 template <size_t N>
-void benchmark(rbuffer<N> &rb, int iterations)
+void benchmark(rbuffer<N> &rb, uint32_t iterations)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
     std::thread producer(
         [&rb, iterations]()
         {
-            for (int i = 0; i < iterations; ++i)
+            for (uint32_t i = 0; i < iterations; ++i)
             {
                 while (!rb.push(i))
                     ;
@@ -22,7 +22,7 @@ void benchmark(rbuffer<N> &rb, int iterations)
     std::thread consumer(
         [&rb, iterations]()
         {
-            for (int i = 0; i < iterations; ++i)
+            for (uint32_t i = 0; i < iterations; ++i)
             {
                 uint32_t value;
                 while (!rb.pop(value))
