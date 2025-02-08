@@ -4,16 +4,15 @@
 #include <vector>
 #include <new>
 
+template <size_t N = 16>
 class rbuffer
 {
 public:
-    rbuffer(size_t size) : data_(size), capacity_(size) {}
-
     bool push(uint32_t value)
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
 
-        const size_t nextWriteIdx = writeIdx + 1 == capacity_ ? 0 : writeIdx + 1;
+        const size_t nextWriteIdx = (writeIdx + 1) & mask_;
 
         if (nextWriteIdx == readIdxCached_)
         {
@@ -45,7 +44,7 @@ public:
 
         value = data_[readIdx];
 
-        const size_t nextReadIdx = readIdx + 1 == capacity_ ? 0 : readIdx + 1;
+        const size_t nextReadIdx = (readIdx + 1) & mask_;
         readIdx_.store(nextReadIdx, std::memory_order_release);
 
         return true;
@@ -53,9 +52,13 @@ public:
 
 private:
     constexpr static size_t cache_line_size = std::hardware_destructive_interference_size;
+    constexpr static size_t size_ = N;
+    constexpr static size_t mask_ = N - 1;
 
-    std::vector<uint32_t> data_;
-    size_t capacity_;
+    static_assert(size_ > 0, "buffer size must be greater than zero");
+    static_assert((size_ & mask_) == 0, "buffer size must be a power of two");
+
+    std::array<uint32_t, N> data_;
     alignas(cache_line_size) std::atomic<size_t> readIdx_{0};
     alignas(cache_line_size) std::atomic<size_t> readIdxCached_{0};
     alignas(cache_line_size) std::atomic<size_t> writeIdx_{0};

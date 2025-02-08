@@ -4,8 +4,8 @@
 #include <iostream>
 #include <thread>
 
-// Benchmark function
-void benchmark(rbuffer &rb, int iterations)
+template <size_t N>
+void benchmark(rbuffer<N> &rb, int iterations)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -40,7 +40,7 @@ void benchmark(rbuffer &rb, int iterations)
 
 int main()
 {
-    rbuffer rb(1024);
+    rbuffer<1024> rb;
     benchmark(rb, 1'000'000'000);
     return 0;
 }
