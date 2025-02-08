@@ -4,6 +4,12 @@
 #include <vector>
 #include <new>
 
+#ifdef __cpp_lib_hardware_interference_size
+constexpr size_t cache_line_size = std::hardware_destructive_interference_size;
+#else
+constexpr size_t cache_line_size = 64;
+#endif
+
 template <size_t N = 16>
 class rbuffer
 {
@@ -51,7 +57,6 @@ public:
     }
 
 private:
-    constexpr static size_t cache_line_size = std::hardware_destructive_interference_size;
     constexpr static size_t size_ = N;
     constexpr static size_t mask_ = N - 1;
 
