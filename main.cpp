@@ -8,16 +8,21 @@
 class rbuffer
 {
 public:
-    rbuffer(size_t size) : data_(size), capacity_(size), writeIdx_(0), readIdx_(0) {}
+    rbuffer(size_t size) : data_(size), capacity_(size) {}
 
     bool push(uint32_t value)
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
 
         const size_t nextWriteIdx = writeIdx + 1 == capacity_ ? 0 : writeIdx + 1;
-        if (nextWriteIdx == readIdx_.load(std::memory_order_acquire))
+
+        if (nextWriteIdx == readIdxCached_)
         {
-            return false;
+            readIdxCached_ = readIdx_.load(std::memory_order_acquire);
+            if (nextWriteIdx == readIdxCached_)
+            {
+                return false;
+            }
         }
 
         data_[writeIdx] = value;
@@ -26,13 +31,17 @@ public:
         return true;
     }
 
-    bool pop(int &value)
+    bool pop(uint32_t &value)
     {
         const size_t readIdx = readIdx_.load(std::memory_order_relaxed);
 
-        if (readIdx == writeIdx_.load(std::memory_order_acquire))
+        if (readIdx == writeIdxCached_)
         {
-            return false;
+            writeIdxCached_ = writeIdx_.load(std::memory_order_acquire);
+            if (readIdx == writeIdxCached_)
+            {
+                return false;
+            }
         }
 
         value = data_[readIdx];
@@ -46,8 +55,10 @@ public:
 private:
     size_t capacity_;
     std::vector<uint32_t> data_;
-    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> readIdx_;
-    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> writeIdx_;
+    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> readIdx_{0};
+    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> readIdxCached_{0};
+    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> writeIdx_{0};
+    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> writeIdxCached_{0};
 };
 
 // Benchmark function
@@ -70,7 +81,7 @@ void benchmark(rbuffer &rb, int iterations)
         {
             for (int i = 0; i < iterations; ++i)
             {
-                int value;
+                uint32_t value;
                 while (!rb.pop(value))
                     ;
             }
