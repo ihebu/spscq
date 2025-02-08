@@ -53,12 +53,14 @@ public:
     }
 
 private:
+    constexpr static size_t cache_line_size = std::hardware_destructive_interference_size;
+
     size_t capacity_;
     std::vector<uint32_t> data_;
-    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> readIdx_{0};
-    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> readIdxCached_{0};
-    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> writeIdx_{0};
-    alignas(std::hardware_destructive_interference_size) std::atomic<size_t> writeIdxCached_{0};
+    alignas(cache_line_size) std::atomic<size_t> readIdx_{0};
+    alignas(cache_line_size) std::atomic<size_t> readIdxCached_{0};
+    alignas(cache_line_size) std::atomic<size_t> writeIdx_{0};
+    alignas(cache_line_size) std::atomic<size_t> writeIdxCached_{0};
 };
 
 // Benchmark function
@@ -97,7 +99,7 @@ void benchmark(rbuffer &rb, int iterations)
 
 int main()
 {
-    rbuffer rb(1024);        // Ring buffer of size 1024
-    benchmark(rb, 10000000); // 1 million iterations
+    rbuffer rb(1024);             // Ring buffer of size 1024
+    benchmark(rb, 1'000'000'000); // 1 million iterations
     return 0;
 }
