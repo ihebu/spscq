@@ -16,26 +16,32 @@ To use the ring buffer in your project, include the header file and instantiate 
 ```cpp
 #include "spscq.hpp"
 
-int main() {
-    
+#include <thread>
+
+int main()
+{
+
+    spscq<1024> q;
+    const uint32_t iterations = 1'000'000'000;
+
     std::thread producer(
-        [&rb, iterations]()
+        [&]()
         {
             for (uint32_t i = 0; i < iterations; ++i)
             {
-                while (!rb.push(i))
+                while (!q.push(i))
                     ;
             }
         }
     );
 
     std::thread consumer(
-        [&rb, iterations]()
+        [&]()
         {
             for (uint32_t i = 0; i < iterations; ++i)
             {
                 uint32_t value;
-                while (!rb.pop(value))
+                while (!q.pop(value))
                     ;
             }
         }

@@ -40,7 +40,7 @@ void benchmark(spscq<N> &rb, uint32_t iterations)
 
 int main()
 {
-    spscq<1024> rb;
-    benchmark(rb, 1'000'000'000);
+    spscq<1024> q;
+    benchmark(q, 1'000'000'000);
     return 0;
 }
