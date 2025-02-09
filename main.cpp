@@ -1,4 +1,4 @@
-#include "spscq.hpp"
+#include "include/spscq.hpp"
 
 #include <chrono>
 #include <iostream>

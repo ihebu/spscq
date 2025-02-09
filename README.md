@@ -14,7 +14,7 @@ This project provides a Single Producer Single Consumer (SPSC) ring buffer imple
 To use the ring buffer in your project, include the header file and instantiate the `spscq` class with the desired size.
 
 ```cpp
-#include "spscq.hpp"
+#include "include/spscq.hpp"
 
 #include <thread>
 
