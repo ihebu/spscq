@@ -1,11 +1,11 @@
-#include "rbuffer.hpp"
+#include "spscq.hpp"
 
 #include <chrono>
 #include <iostream>
 #include <thread>
 
 template <size_t N>
-void benchmark(rbuffer<N> &rb, uint32_t iterations)
+void benchmark(spscq<N> &rb, uint32_t iterations)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -40,7 +40,7 @@ void benchmark(rbuffer<N> &rb, uint32_t iterations)
 
 int main()
 {
-    rbuffer<1024> rb;
+    spscq<1024> rb;
     benchmark(rb, 1'000'000'000);
     return 0;
 }

@@ -1,4 +1,4 @@
-# SPSC Ring Buffer in C++
+# High Performance SPSC Ring Buffer / Queue in C++
 
 This project provides a Single Producer Single Consumer (SPSC) ring buffer implementation in C++. The ring buffer is a fixed-size, lock-free data structure that allows efficient communication between a single producer and a single consumer thread.
 
@@ -11,10 +11,10 @@ This project provides a Single Producer Single Consumer (SPSC) ring buffer imple
 
 ## Usage
 
-To use the ring buffer in your project, include the header file and instantiate the `rbuffer` class with the desired size.
+To use the ring buffer in your project, include the header file and instantiate the `spscq` class with the desired size.
 
 ```cpp
-#include "rbuffer.hpp"
+#include "spscq.hpp"
 
 int main() {
     
