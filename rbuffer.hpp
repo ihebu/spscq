@@ -56,6 +56,13 @@ public:
         return true;
     }
 
+    rbuffer() {}
+    ~rbuffer() {}
+
+    // Non-copyable
+    rbuffer(const rbuffer &) = delete;
+    rbuffer &operator=(const rbuffer &) = delete;
+
 private:
     constexpr static size_t size_ = N;
     constexpr static size_t mask_ = N - 1;
