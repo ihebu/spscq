@@ -18,7 +18,7 @@ public:
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
 
-        size_t nextWriteIdx = increment(writeIdx_);
+        size_t nextWriteIdx = increment(writeIdx);
         if (nextWriteIdx == readIdxCached_)
         {
             readIdxCached_ = readIdx_.load(std::memory_order_acquire);
