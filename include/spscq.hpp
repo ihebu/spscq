@@ -30,10 +30,7 @@ public:
         else
         {
             // If the buffer size is not a power of two, handle wrapping around the index manually.
-            if (nextWriteIdx == size_)
-            {
-                nextWriteIdx = 0;
-            }
+            nextWriteIdx = nextWriteIdx == size_ ? 0 : nextWriteIdx;
         }
 
         if (nextWriteIdx == readIdxCached_)
@@ -78,10 +75,7 @@ public:
         else
         {
             // If the buffer size is not a power of two, handle wrapping around the index manually.
-            if (nextReadIdx == size_)
-            {
-                nextReadIdx = 0;
-            }
+            nextReadIdx = nextReadIdx == size_ ? 0 : nextReadIdx;
         }
         readIdx_.store(nextReadIdx, std::memory_order_release);
 
