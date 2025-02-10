@@ -14,7 +14,7 @@ void benchmark(spscq<N> &rb, uint32_t iterations)
         {
             for (uint32_t i = 0; i < iterations; ++i)
             {
-                while (!rb.push(i))
+                while (!rb.try_push(i))
                     ;
             }
         });
@@ -25,7 +25,7 @@ void benchmark(spscq<N> &rb, uint32_t iterations)
             for (uint32_t i = 0; i < iterations; ++i)
             {
                 uint32_t value;
-                while (!rb.pop(value))
+                while (!rb.try_pop(value))
                     ;
             }
         });
