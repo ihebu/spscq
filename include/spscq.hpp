@@ -14,25 +14,11 @@ template <size_t N = 16>
 class spscq
 {
 public:
-    bool push(uint32_t value)
+    bool try_push(uint32_t value)
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
 
-        size_t nextWriteIdx = writeIdx + 1;
-
-        // Check at compile time if the buffer size is a power of two.
-        if constexpr ((size_ & mask_) == 0)
-        {
-            // If the buffer size is a power of two, use bitwise AND with mask_ to wrap around the index.
-            // This is efficient because it avoids a conditional branch.
-            nextWriteIdx &= mask_;
-        }
-        else
-        {
-            // If the buffer size is not a power of two, handle wrapping around the index manually.
-            nextWriteIdx = nextWriteIdx == size_ ? 0 : nextWriteIdx;
-        }
-
+        size_t nextWriteIdx = increment(writeIdx_);
         if (nextWriteIdx == readIdxCached_)
         {
             readIdxCached_ = readIdx_.load(std::memory_order_acquire);
@@ -48,7 +34,7 @@ public:
         return true;
     }
 
-    bool pop(uint32_t &value)
+    bool try_pop(uint32_t &value)
     {
         const size_t readIdx = readIdx_.load(std::memory_order_relaxed);
 
@@ -63,20 +49,7 @@ public:
 
         value = data_[readIdx];
 
-        size_t nextReadIdx = readIdx + 1;
-
-        // Check at compile time if the buffer size is a power of two.
-        if constexpr ((size_ & mask_) == 0)
-        {
-            // If the buffer size is a power of two, use bitwise AND with mask_ to wrap around the index.
-            // This is efficient because it avoids a conditional branch.
-            nextReadIdx &= mask_;
-        }
-        else
-        {
-            // If the buffer size is not a power of two, handle wrapping around the index manually.
-            nextReadIdx = nextReadIdx == size_ ? 0 : nextReadIdx;
-        }
+        size_t nextReadIdx = increment(readIdx);
         readIdx_.store(nextReadIdx, std::memory_order_release);
 
         return true;
@@ -90,6 +63,26 @@ public:
     spscq &operator=(const spscq &) = delete;
 
 private:
+    inline size_t increment(size_t index)
+    {
+        size_t nextIdx = index + 1;
+
+        // Check at compile time if the buffer size is a power of two.
+        if constexpr ((size_ & mask_) == 0)
+        {
+            // If the buffer size is a power of two, use bitwise AND with mask_ to wrap around the index.
+            // This is efficient because it avoids a conditional branch.
+            nextIdx &= mask_;
+        }
+        else
+        {
+            // If the buffer size is not a power of two, handle wrapping around the index manually.
+            nextIdx = nextIdx == size_ ? 0 : nextIdx;
+        }
+
+        return nextIdx;
+    }
+
     constexpr static size_t size_ = N;
     constexpr static size_t mask_ = N - 1;
 
