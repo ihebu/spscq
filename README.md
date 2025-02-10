@@ -29,7 +29,7 @@ int main()
         {
             for (uint32_t i = 0; i < iterations; ++i)
             {
-                while (!q.push(i))
+                while (!q.try_push(i))
                     ;
             }
         }
@@ -41,7 +41,7 @@ int main()
             for (uint32_t i = 0; i < iterations; ++i)
             {
                 uint32_t value;
-                while (!q.pop(value))
+                while (!q.try_pop(value))
                     ;
             }
         }
