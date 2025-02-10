@@ -1,7 +1,8 @@
 #pragma once
 
-#include <atomic>
 #include <array>
+#include <atomic>
+#include <cstddef>
 #include <new>
 
 #ifdef __cpp_lib_hardware_interference_size
