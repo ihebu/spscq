@@ -18,7 +18,23 @@ public:
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
 
-        const size_t nextWriteIdx = (writeIdx + 1) & mask_;
+        size_t nextWriteIdx = writeIdx + 1;
+
+        // Check at compile time if the buffer size is a power of two.
+        if constexpr ((size_ & mask_) == 0)
+        {
+            // If the buffer size is a power of two, use bitwise AND with mask_ to wrap around the index.
+            // This is efficient because it avoids a conditional branch.
+            nextWriteIdx &= mask_;
+        }
+        else
+        {
+            // If the buffer size is not a power of two, handle wrapping around the index manually.
+            if (nextWriteIdx == size_)
+            {
+                nextWriteIdx = 0;
+            }
+        }
 
         if (nextWriteIdx == readIdxCached_)
         {
@@ -50,7 +66,23 @@ public:
 
         value = data_[readIdx];
 
-        const size_t nextReadIdx = (readIdx + 1) & mask_;
+        size_t nextReadIdx = readIdx + 1;
+
+        // Check at compile time if the buffer size is a power of two.
+        if constexpr ((size_ & mask_) == 0)
+        {
+            // If the buffer size is a power of two, use bitwise AND with mask_ to wrap around the index.
+            // This is efficient because it avoids a conditional branch.
+            nextReadIdx &= mask_;
+        }
+        else
+        {
+            // If the buffer size is not a power of two, handle wrapping around the index manually.
+            if (nextReadIdx == size_)
+            {
+                nextReadIdx = 0;
+            }
+        }
         readIdx_.store(nextReadIdx, std::memory_order_release);
 
         return true;
@@ -68,7 +100,6 @@ private:
     constexpr static size_t mask_ = N - 1;
 
     static_assert(size_ > 0, "buffer size must be greater than zero");
-    static_assert((size_ & mask_) == 0, "buffer size must be a power of two");
 
     std::array<uint32_t, N> data_;
     alignas(cache_line_size) std::atomic<size_t> readIdx_{0};
