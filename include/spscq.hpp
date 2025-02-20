@@ -52,8 +52,8 @@ public:
         return true;
     }
 
-    spscq() {}
-    ~spscq() {}
+    spscq() = default;
+    ~spscq() = default;
 
     // For thread safety, make the queue non-copyable and Non-movable
     spscq(const spscq &) = delete;
