@@ -5,7 +5,7 @@
 #include <thread>
 
 template <size_t N>
-void benchmark(spscq<N> &rb, uint32_t iterations)
+void benchmark(spscq<uint32_t, N> &rb, uint32_t iterations)
 {
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -40,7 +40,7 @@ void benchmark(spscq<N> &rb, uint32_t iterations)
 
 int main()
 {
-    spscq<1024> q;
+    spscq<uint32_t, 1024> q;
     benchmark(q, 1'000'000'000);
     return 0;
 }

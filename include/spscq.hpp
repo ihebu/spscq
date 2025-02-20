@@ -4,18 +4,14 @@
 #include <atomic>
 #include <cstddef>
 #include <new>
+#include <utility>
 
-#ifdef __cpp_lib_hardware_interference_size
-constexpr size_t cache_line_size = std::hardware_destructive_interference_size;
-#else
-constexpr size_t cache_line_size = 64;
-#endif
-
-template <size_t N = 16>
+template <typename T, size_t N = 16>
 class spscq
 {
 public:
-    bool try_push(uint32_t value)
+    template <typename P>
+    bool try_push(P &&value)
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
 
@@ -29,13 +25,13 @@ public:
             }
         }
 
-        data_[writeIdx] = value;
+        data_[writeIdx] = std::forward<P>(value);
         writeIdx_.store(nextWriteIdx, std::memory_order_release);
 
         return true;
     }
 
-    bool try_pop(uint32_t &value)
+    bool try_pop(T &value)
     {
         const size_t readIdx = readIdx_.load(std::memory_order_relaxed);
 
@@ -59,7 +55,7 @@ public:
     spscq() {}
     ~spscq() {}
 
-    // Non-copyable
+    // For thread safety, make the queue non-copyable and Non-movable
     spscq(const spscq &) = delete;
     spscq &operator=(const spscq &) = delete;
 
@@ -84,14 +80,20 @@ private:
         return nextIdx;
     }
 
+#ifdef __cpp_lib_hardware_interference_size
+    static constexpr size_t cacheLine_ = std::hardware_destructive_interference_size;
+#else
+    static constexpr size_t cacheLine_ = 64;
+#endif
+
     constexpr static size_t size_ = N;
     constexpr static size_t mask_ = N - 1;
 
     static_assert(size_ > 0, "buffer size must be greater than zero");
 
-    std::array<uint32_t, N> data_;
-    alignas(cache_line_size) std::atomic<size_t> readIdx_{0};
-    alignas(cache_line_size) std::atomic<size_t> readIdxCached_{0};
-    alignas(cache_line_size) std::atomic<size_t> writeIdx_{0};
-    alignas(cache_line_size) std::atomic<size_t> writeIdxCached_{0};
+    std::array<T, N> data_;
+    alignas(cacheLine_) std::atomic<size_t> readIdx_{0};
+    alignas(cacheLine_) std::atomic<size_t> readIdxCached_{0};
+    alignas(cacheLine_) std::atomic<size_t> writeIdx_{0};
+    alignas(cacheLine_) std::atomic<size_t> writeIdxCached_{0};
 };
