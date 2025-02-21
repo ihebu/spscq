@@ -14,8 +14,8 @@ public:
     bool try_push(P &&value)
     {
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
+        const size_t nextWriteIdx = increment(writeIdx);
 
-        size_t nextWriteIdx = increment(writeIdx);
         if (nextWriteIdx == readIdxCached_)
         {
             readIdxCached_ = readIdx_.load(std::memory_order_acquire);
@@ -46,7 +46,7 @@ public:
 
         value = data_[readIdx];
 
-        size_t nextReadIdx = increment(readIdx);
+        const size_t nextReadIdx = increment(readIdx);
         readIdx_.store(nextReadIdx, std::memory_order_release);
 
         return true;
