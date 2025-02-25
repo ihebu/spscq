@@ -11,3 +11,23 @@ target_include_directories(spscq INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PRIVATE spscq pthread)
+
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+add_executable(
+    spscq_test
+    tests/spscq_test.cpp
+)
+
+target_link_libraries(spscq_test PRIVATE spscq pthread GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(spscq_test)
