@@ -5,8 +5,9 @@
 #include <cstddef>
 #include <new>
 #include <utility>
+#include <memory>
 
-template <typename T, size_t N = 16>
+template <typename T, size_t N = 16, bool useStack = true>
 class spscq
 {
 public:
@@ -52,7 +53,14 @@ public:
         return true;
     }
 
-    spscq() = default;
+    spscq()
+    {
+        if constexpr (!useStack)
+        {
+            data_ = std::make_unique<T[]>(N);
+        }
+    }
+
     ~spscq() = default;
 
     // For thread safety, make the queue non-copyable and Non-movable
@@ -91,7 +99,9 @@ private:
 
     static_assert(size_ > 0, "buffer size must be greater than zero");
 
-    std::array<T, N> data_;
+    using buffer = std::conditional_t<useStack, std::array<T, N>, std::unique_ptr<T[]>>;
+
+    buffer data_;
     alignas(cacheLine_) std::atomic<size_t> readIdx_{0};
     alignas(cacheLine_) std::atomic<size_t> readIdxCached_{0};
     alignas(cacheLine_) std::atomic<size_t> writeIdx_{0};
