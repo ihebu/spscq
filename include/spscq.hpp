@@ -85,7 +85,17 @@ public:
         }
     }
 
-    ~spscq() = default;
+    ~spscq()
+    {
+        size_t r = readIdx_.load(std::memory_order_relaxed);
+        size_t w = writeIdx_.load(std::memory_order_relaxed);
+
+        while (r != w)
+        {
+            data_[r].~T();
+            r = increment(r);
+        }
+    }
 
     // Prevent accidental sharing between threads by making the queue non-copyable and non-movable.
     // Note: This does not inherently guarantee thread safety; proper usage is required.
