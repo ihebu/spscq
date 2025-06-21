@@ -103,7 +103,7 @@ public:
     spscq &operator=(const spscq &) = delete;
 
 private:
-    size_t increment(size_t index) constexpr
+    size_t increment(size_t index) const noexcept
     {
         size_t nextIdx = index + 1;
 
