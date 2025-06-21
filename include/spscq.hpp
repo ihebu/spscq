@@ -42,6 +42,8 @@ public:
 
     bool try_pop(T &value)
     {
+        static_assert(std::is_copy_assignable_v<T>, "The type T must be copy assignable.");
+
         const size_t readIdx = readIdx_.load(std::memory_order_relaxed);
 
         if (readIdx == writeIdxCached_)
@@ -53,12 +55,26 @@ public:
             }
         }
 
-        value = data_[readIdx];
+        value = std::move(data_[readIdx]);
+        data_[readIdx].~T();
 
         const size_t nextReadIdx = increment(readIdx);
         readIdx_.store(nextReadIdx, std::memory_order_release);
 
         return true;
+    }
+
+    size_t size() const
+    {
+        const size_t readIdx = readIdx_.load(std::memory_order_acquire);
+        const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
+
+        return writeIdx - readIdx + (writeIdx < readIdx ? size_ : 0);
+    }
+
+    bool empty() const
+    {
+        return readIdx_.load(std::memory_order_acquire) == writeIdx_.load(std::memory_order_relaxed);
     }
 
     spscq()
@@ -71,7 +87,8 @@ public:
 
     ~spscq() = default;
 
-    // For thread safety, make the queue non-copyable and Non-movable
+    // Prevent accidental sharing between threads by making the queue non-copyable and non-movable.
+    // Note: This does not inherently guarantee thread safety; proper usage is required.
     spscq(const spscq &) = delete;
     spscq &operator=(const spscq &) = delete;
 
@@ -110,6 +127,7 @@ private:
     using buffer = std::conditional_t<useStack, std::array<T, N>, std::unique_ptr<T[]>>;
 
     buffer data_;
+    // Align the atomic variable to cache-line size to minimize false sharing between threads.
     alignas(cacheLine_) std::atomic<size_t> readIdx_{0};
     alignas(cacheLine_) std::atomic<size_t> readIdxCached_{0};
     alignas(cacheLine_) std::atomic<size_t> writeIdx_{0};
