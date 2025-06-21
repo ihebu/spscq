@@ -11,9 +11,11 @@ template <typename T, size_t N = 16, bool useStack = true>
 class spscq
 {
 public:
-    template <typename P>
-    bool try_push(P &&value)
+    template <typename... Args>
+    bool try_emplace(Args &&...args)
     {
+        static_assert(std::is_constructible_v<T, Args...>, "The type T must support construction with the provided arguments.");
+
         const size_t writeIdx = writeIdx_.load(std::memory_order_relaxed);
         const size_t nextWriteIdx = increment(writeIdx);
 
@@ -26,10 +28,16 @@ public:
             }
         }
 
-        data_[writeIdx] = std::forward<P>(value);
+        new (&data_[writeIdx]) T(std::forward<Args>(args)...);
         writeIdx_.store(nextWriteIdx, std::memory_order_release);
 
         return true;
+    }
+
+    template <typename P>
+    bool try_push(P &&value)
+    {
+        return try_emplace(std::forward<P>(value));
     }
 
     bool try_pop(T &value)
