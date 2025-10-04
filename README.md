@@ -1,6 +1,6 @@
 # Single Producer Single Consumer Queue (SPSCQ)
 
-A high-performance, lock-free, bounded Single-Producer Single-Consumer (SPSC) queue implementation in C++. Designed for scenarios where exactly one thread produces data and exactly one thread consumes it.
+Header-only library for a high-performance, lock-free, bounded Single-Producer Single-Consumer (SPSC) queue implementation in C++. Designed for scenarios where exactly one thread produces data and exactly one thread consumes it.
 
 ## Features
 
