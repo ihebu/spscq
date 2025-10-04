@@ -6,7 +6,7 @@
 
 TEST(SPSCQTest, PushPopSingleElement)
 {
-    spscq<int, 16> queue;
+    spscq<int> queue(16);
     int value;
 
     EXPECT_TRUE(queue.try_push(42));
@@ -16,7 +16,7 @@ TEST(SPSCQTest, PushPopSingleElement)
 
 TEST(SPSCQTest, PushUntilFull)
 {
-    spscq<int, 4> queue;
+    spscq<int> queue(4);
     EXPECT_TRUE(queue.try_push(1));
     EXPECT_TRUE(queue.try_push(2));
     EXPECT_TRUE(queue.try_push(3));
@@ -26,7 +26,7 @@ TEST(SPSCQTest, PushUntilFull)
 
 TEST(SPSCQTest, PopUntilEmpty)
 {
-    spscq<int, 4> queue;
+    spscq<int> queue(4);
     int value;
 
     queue.try_push(1);
@@ -45,7 +45,7 @@ TEST(SPSCQTest, PopUntilEmpty)
 
 TEST(SPSCQTest, WrapAround)
 {
-    spscq<int, 4> queue;
+    spscq<int> queue(4);
     int value;
 
     queue.try_push(1);
@@ -70,7 +70,7 @@ TEST(SPSCQTest, WrapAround)
 
 TEST(SPSCQTest, PushPopDifferentTypes)
 {
-    spscq<std::string, 4> queue;
+    spscq<std::string> queue(4);
     std::string value;
 
     EXPECT_TRUE(queue.try_push("hello"));
@@ -84,7 +84,7 @@ TEST(SPSCQTest, PushPopDifferentTypes)
 
 TEST(SPSCQTest, MultithreadedProducerConsumer)
 {
-    spscq<int, 16> queue;
+    spscq<int> queue(16);
     const int num_elements = 1000;
 
     std::vector<int> produced_values(num_elements);
